@@ -24,10 +24,15 @@ export default function App() {
     try {
       const res = await fetch(`https://api-inference.huggingface.co/models/${model}`, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+        headers: { 'Authorization': `Bearer ${apiKey}` },
         body: JSON.stringify({ inputs: prompt }),
       })
-      if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.error || `HTTP ${res.status}`) }
+      if (!res.ok) {
+        const text = await res.text()
+        let msg = `HTTP ${res.status}`
+        try { msg = JSON.parse(text).error || msg } catch {}
+        throw new Error(msg)
+      }
       const blob = await res.blob()
       const url = URL.createObjectURL(blob)
       setImage(url)
